@@ -207,7 +207,7 @@ class AsyncIdle(AsyncPeriodicQuery):
                 ):
                     self._spot_wrapper._is_standing = False
                 else:
-                    self._logger.warn("Stand command in unknown state")
+                    # self._logger.warn("Stand command in unknown state")
                     self._spot_wrapper._is_standing = False
             except (ResponseError, RpcError) as e:
                 self._logger.error("Error when getting robot command feedback: %s", e)
@@ -549,15 +549,15 @@ class SpotWrapper:
                     self._robot_metrics_task,
                     self._lease_task,
                     self._front_image_task,
-                    self._side_image_task,
-                    self._rear_image_task,
+                    # self._side_image_task,
+                    # self._rear_image_task,
                     self._idle_task,
                     self._estop_monitor,
                 ]
             )
 
-            if self._robot.has_arm():
-                self._async_tasks.add_task(self._hand_image_task)
+            # if self._robot.has_arm():
+            #     self._async_tasks.add_task(self._hand_image_task)
 
             self._robot_id = None
             self._lease = None
@@ -860,7 +860,7 @@ class SpotWrapper:
         """Get mobility params"""
         return self._mobility_params
 
-    def velocity_cmd(self, v_x, v_y, v_rot, cmd_duration=0.125):
+    def velocity_cmd(self, v_x, v_y, v_rot, cmd_duration=0.300):
         """Send a velocity motion command to the robot.
 
         Args:
@@ -1021,8 +1021,8 @@ class SpotWrapper:
             return False, "Spot with an arm is required for this service"
 
         try:
-            self._logger.info("Spot is powering on within the timeout of 20 secs")
-            self._robot.power_on(timeout_sec=20)
+            # self._logger.info("Spot is powering on within the timeout of 20 secs")
+            # self._robot.power_on(timeout_sec=20)
             assert self._robot.is_powered_on(), "Spot failed to power on"
             self._logger.info("Spot is powered on")
         except Exception as e:
@@ -1385,6 +1385,7 @@ class SpotWrapper:
                 arm_cartesian_command = arm_command_pb2.ArmCartesianCommand.Request(
                     root_frame_name=BODY_FRAME_NAME,
                     pose_trajectory_in_task=hand_trajectory,
+                    force_remain_near_current_joint_configuration=True
                 )
                 arm_command = arm_command_pb2.ArmCommand.Request(
                     arm_cartesian_command=arm_cartesian_command
@@ -1396,22 +1397,20 @@ class SpotWrapper:
                 )
 
                 # robot_command = self._robot_command(RobotCommandBuilder.build_synchro_command(synchronized_command))
+                arm_carry_command = RobotCommandBuilder.arm_carry_command()
                 robot_command = robot_command_pb2.RobotCommand(
-                    synchronized_command=synchronized_command
-                )
-
-                command = self._robot_command(
-                    RobotCommandBuilder.build_synchro_command(robot_command)
+                    synchronized_command=(synchronized_command)
                 )
 
                 # Send the request
-                self._robot_command_client.robot_command(command)
+                self._robot_command_client.robot_command(robot_command)
+                #self._robot_command_client.robot_command(arm_carry_command)
                 self._logger.info("Moving arm to position.")
 
                 time.sleep(6.0)
 
         except Exception as e:
-            return False, "An error occured while trying to move arm"
+            return False, "An error occured while trying to move arm " + str(e)
 
         return True, "Moved arm successfully"
 
@@ -1828,3 +1827,17 @@ class SpotWrapper:
         """Get docking state of robot."""
         state = self._docking_client.get_docking_state(**kwargs)
         return state
+
+    def update_image_tasks(self, image_name):
+        """Updates the async tasks for an image topic if there is a subscriber"""
+        lookup = {
+            "hand_image" : self._hand_image_task,
+            "side_image" : self._side_image_task,
+            "rear_image" :self._rear_image_task,
+        
+        }
+        # if self._robot.has_arm():
+            #     self._async_tasks.add_task(self._hand_image_task)
+
+        self._async_tasks.add_task(lookup[image_name])
+        
