@@ -207,7 +207,7 @@ class AsyncIdle(AsyncPeriodicQuery):
                 ):
                     self._spot_wrapper._is_standing = False
                 else:
-                    self._logger.warn("Stand command in unknown state")
+                    # self._logger.warn("Stand command in unknown state")
                     self._spot_wrapper._is_standing = False
             except (ResponseError, RpcError) as e:
                 self._logger.error("Error when getting robot command feedback: %s", e)
@@ -1043,18 +1043,13 @@ class SpotWrapper:
 
     def arm_stow(self):
         try:
-            success, msg = self.ensure_arm_power_and_stand()
-            if not success:
-                self._logger.info(msg)
-                return False, msg
-            else:
-                # Stow Arm
-                stow = RobotCommandBuilder.arm_stow_command()
+            # Stow Arm
+            stow = RobotCommandBuilder.arm_stow_command()
 
-                # Command issue with RobotCommandClient
-                self._robot_command_client.robot_command(stow)
-                self._logger.info("Command stow issued")
-                time.sleep(2.0)
+            # Command issue with RobotCommandClient
+            self._robot_command_client.robot_command(stow)
+            self._logger.info("Command stow issued")
+            time.sleep(2.0)
 
         except Exception as e:
             return False, "Exception occured while trying to stow"
@@ -1062,19 +1057,14 @@ class SpotWrapper:
         return True, "Stow arm success"
 
     def arm_unstow(self):
-        try:
-            success, msg = self.ensure_arm_power_and_stand()
-            if not success:
-                self._logger.info(msg)
-                return False, msg
-            else:
-                # Unstow Arm
-                unstow = RobotCommandBuilder.arm_ready_command()
+        try:            
+            # Unstow Arm
+            unstow = RobotCommandBuilder.arm_ready_command()
 
-                # Command issue with RobotCommandClient
-                self._robot_command_client.robot_command(unstow)
-                self._logger.info("Command unstow issued")
-                time.sleep(2.0)
+            # Command issue with RobotCommandClient
+            self._robot_command_client.robot_command(unstow)
+            self._logger.info("Command unstow issued")
+            time.sleep(2.0)
 
         except Exception as e:
             return False, "Exception occured while trying to unstow"
@@ -1083,18 +1073,13 @@ class SpotWrapper:
 
     def arm_carry(self):
         try:
-            success, msg = self.ensure_arm_power_and_stand()
-            if not success:
-                self._logger.info(msg)
-                return False, msg
-            else:
-                # Get Arm in carry mode
-                carry = RobotCommandBuilder.arm_carry_command()
+            # Get Arm in carry mode
+            carry = RobotCommandBuilder.arm_carry_command()
 
-                # Command issue with RobotCommandClient
-                self._robot_command_client.robot_command(carry)
-                self._logger.info("Command carry issued")
-                time.sleep(2.0)
+            # Command issue with RobotCommandClient
+            self._robot_command_client.robot_command(carry)
+            self._logger.info("Command carry issued")
+            time.sleep(2.0)
 
         except Exception as e:
             return False, "Exception occured while carry mode was issued"
@@ -1281,18 +1266,13 @@ class SpotWrapper:
 
     def gripper_open(self):
         try:
-            success, msg = self.ensure_arm_power_and_stand()
-            if not success:
-                self._logger.info(msg)
-                return False, msg
-            else:
-                # Open gripper
-                command = RobotCommandBuilder.claw_gripper_open_command()
+            # Open gripper
+            command = RobotCommandBuilder.claw_gripper_open_command()
 
-                # Command issue with RobotCommandClient
-                self._robot_command_client.robot_command(command)
-                self._logger.info("Command gripper open sent")
-                time.sleep(2.0)
+            # Command issue with RobotCommandClient
+            self._robot_command_client.robot_command(command)
+            self._logger.info("Command gripper open sent")
+            time.sleep(2.0)
 
         except Exception as e:
             return False, "Exception occured while gripper was moving"
@@ -1301,18 +1281,13 @@ class SpotWrapper:
 
     def gripper_close(self):
         try:
-            success, msg = self.ensure_arm_power_and_stand()
-            if not success:
-                self._logger.info(msg)
-                return False, msg
-            else:
-                # Close gripper
-                command = RobotCommandBuilder.claw_gripper_close_command()
+            # Close gripper
+            command = RobotCommandBuilder.claw_gripper_close_command()
 
-                # Command issue with RobotCommandClient
-                self._robot_command_client.robot_command(command)
-                self._logger.info("Command gripper close sent")
-                time.sleep(2.0)
+            # Command issue with RobotCommandClient
+            self._robot_command_client.robot_command(command)
+            self._logger.info("Command gripper close sent")
+            time.sleep(2.0)
 
         except Exception as e:
             return False, "Exception occured while gripper was moving"
@@ -1349,68 +1324,59 @@ class SpotWrapper:
 
     def hand_pose(self, pose_points):
         try:
-            success, msg = self.ensure_arm_power_and_stand()
-            if not success:
-                self._logger.info(msg)
-                return False, msg
-            else:
-                # Move the arm to a spot in front of the robot given a pose for the gripper.
-                # Build a position to move the arm to (in meters, relative to the body frame origin.)
-                position = geometry_pb2.Vec3(
-                    x=pose_points.position.x,
-                    y=pose_points.position.y,
-                    z=pose_points.position.z,
-                )
+            # Move the arm to a spot in front of the robot given a pose for the gripper.
+            # Build a position to move the arm to (in meters, relative to the body frame origin.)
+            position = geometry_pb2.Vec3(
+                x=pose_points.position.x,
+                y=pose_points.position.y,
+                z=pose_points.position.z,
+            )
 
-                # # Rotation as a quaternion.
-                rotation = geometry_pb2.Quaternion(
-                    w=pose_points.orientation.w,
-                    x=pose_points.orientation.x,
-                    y=pose_points.orientation.y,
-                    z=pose_points.orientation.z,
-                )
+            # # Rotation as a quaternion.
+            rotation = geometry_pb2.Quaternion(
+                w=pose_points.orientation.w,
+                x=pose_points.orientation.x,
+                y=pose_points.orientation.y,
+                z=pose_points.orientation.z,
+            )
 
-                seconds = 5.0
-                duration = seconds_to_duration(seconds)
+            seconds = 3.0
+            duration = seconds_to_duration(seconds)
 
-                # Build the SE(3) pose of the desired hand position in the moving body frame.
-                hand_pose = geometry_pb2.SE3Pose(position=position, rotation=rotation)
-                hand_pose_traj_point = trajectory_pb2.SE3TrajectoryPoint(
-                    pose=hand_pose, time_since_reference=duration
-                )
-                hand_trajectory = trajectory_pb2.SE3Trajectory(
-                    points=[hand_pose_traj_point]
-                )
+            # Build the SE(3) pose of the desired hand position in the moving body frame.
+            hand_pose = geometry_pb2.SE3Pose(position=position, rotation=rotation)
+            hand_pose_traj_point = trajectory_pb2.SE3TrajectoryPoint(
+                pose=hand_pose, time_since_reference=duration
+            )
+            hand_trajectory = trajectory_pb2.SE3Trajectory(
+                points=[hand_pose_traj_point]
+            )
 
-                arm_cartesian_command = arm_command_pb2.ArmCartesianCommand.Request(
-                    root_frame_name=BODY_FRAME_NAME,
-                    pose_trajectory_in_task=hand_trajectory,
+            arm_cartesian_command = arm_command_pb2.ArmCartesianCommand.Request(
+                root_frame_name=BODY_FRAME_NAME,
+                pose_trajectory_in_task=hand_trajectory,
+            )
+            arm_command = arm_command_pb2.ArmCommand.Request(
+                arm_cartesian_command=arm_cartesian_command
+            )
+            synchronized_command = (
+                synchronized_command_pb2.SynchronizedCommand.Request(
+                    arm_command=arm_command
                 )
-                arm_command = arm_command_pb2.ArmCommand.Request(
-                    arm_cartesian_command=arm_cartesian_command
-                )
-                synchronized_command = (
-                    synchronized_command_pb2.SynchronizedCommand.Request(
-                        arm_command=arm_command
-                    )
-                )
+            )
+            robot_command = robot_command_pb2.RobotCommand(
+                synchronized_command=synchronized_command
+            )
+            command = RobotCommandBuilder.build_synchro_command(robot_command)
+            
+            # Send the request
+            self._robot_command_client.robot_command(command)
+            self._logger.info("Moving arm to position.")
 
-                # robot_command = self._robot_command(RobotCommandBuilder.build_synchro_command(synchronized_command))
-                robot_command = robot_command_pb2.RobotCommand(
-                    synchronized_command=synchronized_command
-                )
-
-                command = self._robot_command(
-                    RobotCommandBuilder.build_synchro_command(robot_command)
-                )
-
-                # Send the request
-                self._robot_command_client.robot_command(command)
-                self._logger.info("Moving arm to position.")
-
-                time.sleep(6.0)
+            time.sleep(4.0)
 
         except Exception as e:
+            self._logger.info(e)
             return False, "An error occured while trying to move arm"
 
         return True, "Moved arm successfully"
